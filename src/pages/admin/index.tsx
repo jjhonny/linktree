@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { Header } from "../../components/Header/input";
 import { Input } from "../../components/Input";
 import { FiTrash } from "react-icons/fi";
@@ -13,11 +13,44 @@ import {
 } from "firebase/firestore";
 import { db } from "../../services/firebaseConnection";
 
+interface ListaProps {
+  id: string;
+  name: string;
+  url: string;
+  bg: string;
+  color: string;
+}
+
 export function Admin() {
   const [nameInput, setNameInput] = useState("");
   const [urlInput, setUrlInput] = useState("");
   const [textColorInput, setTextColorInput] = useState("#121212");
   const [backgroundColorInput, setBackgroundColorInput] = useState("#f1f1f1");
+  const [links, setLinks] = useState<ListaProps[]>([]);
+
+  useEffect(() => {
+    const linksRef = collection(db, "links");
+    const queryRef = query(linksRef, orderBy("created", "asc"));
+
+    const unsub = onSnapshot(queryRef, (snapshot) => {
+      let lista = [] as ListaProps[];
+      snapshot.forEach((doc) => {
+        lista.push({
+          id: doc.id,
+          name: doc.data().name,
+          url: doc.data().url,
+          bg: doc.data().bg,
+          color: doc.data().color,
+        });
+      });
+
+      setLinks(lista);
+    });
+
+    return () => {
+      unsub();
+    };
+  }, []);
 
   function handleRegister(e: FormEvent) {
     e.preventDefault();
@@ -41,6 +74,11 @@ export function Admin() {
       .catch((error) => {
         console.log("Erro ao cadastrar no banco", error);
       });
+  }
+
+  async function handleDeleteLink(id: string) {
+    const docRef = doc(db, "links", id);
+    await deleteDoc(docRef);
   }
 
   return (
@@ -111,17 +149,23 @@ export function Admin() {
       </form>
 
       <h2 className="font-bold text-white mb-4 text-2xl">Meus links</h2>
-      <article
-        className="flex items-center justify-between w-11/12 max-w-xl rounded py-3 px-2 mb-2 select-none"
-        style={{ backgroundColor: "#2563E8", color: "white" }}
-      >
-        <p>Canal do Youtube</p>
-        <div>
-          <button className="border border-dashed p-1 rounded">
-            <FiTrash size={18} color="white" />
-          </button>
-        </div>
-      </article>
+      {links.map((item) => (
+        <article
+          className="flex items-center justify-between w-11/12 max-w-xl rounded py-3 px-2 mb-2 select-none"
+          style={{ backgroundColor: item.bg, color: item.color }}
+          key={item.id}
+        >
+          <p>{item.name}</p>
+          <div>
+            <button
+              className="border border-dashed p-1 rounded"
+              onClick={() => handleDeleteLink(item.id)}
+            >
+              <FiTrash size={18} color="white" />
+            </button>
+          </div>
+        </article>
+      ))}
     </div>
   );
 }
