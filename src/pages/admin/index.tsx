@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { Header } from "../../components/Header/input";
 import { Input } from "../../components/Input";
 import { FiTrash } from "react-icons/fi";
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
+import { db } from "../../services/firebaseConnection";
 
 export function Admin() {
   const [nameInput, setNameInput] = useState("");
@@ -9,10 +19,37 @@ export function Admin() {
   const [textColorInput, setTextColorInput] = useState("#121212");
   const [backgroundColorInput, setBackgroundColorInput] = useState("#f1f1f1");
 
+  function handleRegister(e: FormEvent) {
+    e.preventDefault();
+    if (nameInput === "" || urlInput === "") {
+      alert("Preencha todos os campos");
+      return;
+    }
+
+    addDoc(collection(db, "links"), {
+      name: nameInput,
+      url: urlInput,
+      bg: backgroundColorInput,
+      color: textColorInput,
+      created: new Date(),
+    })
+      .then(() => {
+        setNameInput("");
+        setUrlInput("");
+        alert("Cadastrado com sucesso");
+      })
+      .catch((error) => {
+        console.log("Erro ao cadastrar no banco", error);
+      });
+  }
+
   return (
     <div className="flex items-center flex-col min-h-screen pb-7 px-2">
       <Header />
-      <form className="flex flex-col mt-8 mb-3 w-full max-w-xl">
+      <form
+        className="flex flex-col mt-8 mb-3 w-full max-w-xl"
+        onSubmit={handleRegister}
+      >
         <label className="text-white font-medium my-2">Nome do Link</label>
         <Input
           placeholder="Digite o nome do link"
