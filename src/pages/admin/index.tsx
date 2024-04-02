@@ -12,6 +12,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { db } from "../../services/firebaseConnection";
+import { FaLink } from "react-icons/fa";
 
 interface ListaProps {
   id: string;
@@ -142,9 +143,10 @@ export function Admin() {
 
         <button
           type="submit"
-          className="mb-7 bg-blue-600 h-9 rounded-md text-white font-medium flex justify-center items-center gap-4"
+          className="mb-7 bg-blue-600 h-9 rounded-md text-white font-medium flex justify-center items-center gap-2"
         >
           Cadastrar
+          <FaLink size={16} />
         </button>
       </form>
 
